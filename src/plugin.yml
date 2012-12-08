@@ -1,0 +1,9 @@
+name: WolfColors
+version: 1.0.0
+description: Adjust sapling drop rates
+author: cnaude
+main: me.cnaude.plugin.WolfColors.WCMain
+permissions:
+  wolfcolors.wolfcolors:
+    description: Allow a player to dye a wolf's collar.
+    default: false
