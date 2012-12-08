@@ -1,6 +1,6 @@
 name: WolfColors
-version: 1.0.0
-description: Adjust sapling drop rates
+version: 1.0.1
+description: Change your wolf's collar color!
 author: cnaude
 main: me.cnaude.plugin.WolfColors.WCMain
 permissions:

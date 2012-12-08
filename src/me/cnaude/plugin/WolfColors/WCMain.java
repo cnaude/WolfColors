@@ -52,9 +52,13 @@ public class WCMain extends JavaPlugin implements Listener {
         if (et.equals(EntityType.WOLF)) {
             if (p.hasPermission("wolfcolors.wolfcolors")) {
                 ItemStack item = p.getInventory().getItemInHand();
+                // Check if wolf is tamed
                 if (((Wolf)e).isTamed()) {
+                    // Check if player owns this tamed wolf
                     if (((Wolf)e).getOwner() == (AnimalTamer)p) {
+                        // Check if player holding dye item
                         if (item.getTypeId() == 351) {
+                            // Do magic
                             ((CraftWolf)e).getHandle().setCollarColor((byte) (15 - p.getInventory().getItemInHand().getDurability()));
                             if (item.getAmount() == 1) {
                                 event.getPlayer().getInventory().remove(item);
