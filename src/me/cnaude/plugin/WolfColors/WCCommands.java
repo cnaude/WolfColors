@@ -32,10 +32,14 @@ public class WCCommands implements CommandExecutor {
         if (args.length == 3) {
             // 0 == set, 1 == name, 2 == color
             if (args[0].equalsIgnoreCase("set")) {
-                if (sender.hasPermission("wolfcolors.set.other") || !(sender instanceof Player)) {
-                    Player player = Bukkit.getPlayer(args[1]);
+                if (sender.hasPermission("wolfcolors.set.other") || !(sender instanceof Player)) {                    
+                    String pName;
                     DyeColor dc;
-                    if (player == null) {  
+                    if (Bukkit.getPlayer(args[1]) != null) { 
+                         pName = Bukkit.getPlayer(args[1]).getName();
+                    } else if (Bukkit.getOfflinePlayer(args[0]) != null) {
+                        pName = Bukkit.getOfflinePlayer(args[1]).getName();
+                    } else {
                         sender.sendMessage(ChatColor.RED + "Invalid player specified.");
                         return true;
                     }
@@ -47,12 +51,14 @@ public class WCCommands implements CommandExecutor {
                         return true;
                     }
                     sender.sendMessage(ChatColor.YELLOW + "Setting player " 
-                            + player.getName() + "'s default wolf collar to " + dc.name());
-                    plugin.plColors.put(player.getName(), dc.name());
+                            + pName + "'s default wolf collar to " + dc.name());
+                    plugin.plColors.put(pName, dc.name());
                 } else {
                     sender.sendMessage(ChatColor.RED + "You have no permission to run that command.");
-                }
-            } 
+                }            
+            } else {
+                return false;
+            }
         } else if (args.length == 2) {  
             // 0 = set, 1 = color
             if (args[0].equalsIgnoreCase("set")) {
@@ -71,14 +77,27 @@ public class WCCommands implements CommandExecutor {
                 } else {
                     sender.sendMessage(ChatColor.RED + "You have no permission to run that command.");
                 }
+            } else if (args[0].equalsIgnoreCase("unset")) {
+                if (sender.hasPermission("wolfcolors.set.other") || !(sender instanceof Player)) {                    
+                    String pName = args[1];
+                    if (plugin.plColors.containsKey(pName)) {
+                        sender.sendMessage(ChatColor.YELLOW + "Removing player " 
+                                + pName + "'s default wolf collar color");
+                        plugin.plColors.remove(pName);
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Invalid player name: " + pName);
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You have no permission to run that command.");
+                }            
             } else {
-                sender.sendMessage("/wc set ([player]) [color]");
+                return false;
             }
         } else if (args.length == 1) {
             if (args[0].equalsIgnoreCase("list")) {
                 if (sender.hasPermission("wolfcolors.list") || !(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.GREEN + "=== [ " + ChatColor.WHITE + "Wolf Collar Colors" 
-                            +ChatColor.GREEN + "] ===");
+                            + ChatColor.GREEN + "] ===");
                     for (String s : plugin.plColors.keySet()) {
                         sender.sendMessage(ChatColor.YELLOW + s + ChatColor.BLUE + " => " 
                                 + ChatColor.YELLOW + plugin.plColors.get(s));             
@@ -86,9 +105,21 @@ public class WCCommands implements CommandExecutor {
                 } else {
                     sender.sendMessage(ChatColor.RED + "You have no permission to run that command.");
                 } 
+            } else if (args[0].equalsIgnoreCase("unset")) {
+                if (sender.hasPermission("wolfcolors.set.self") && (sender instanceof Player)) {
+                    Player player = (Player)sender;
+                    sender.sendMessage(ChatColor.YELLOW + "Removing default wolf collar color.");
+                    if (plugin.plColors.containsKey(player.getName())) {
+                        plugin.plColors.remove(player.getName());
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You have no permission to run that command.");
+                }
+            } else {
+                return false;
             }
         } else {
-            sender.sendMessage("/wc set ([player]) [color]");
+            return false;
         }
         return true;
     }

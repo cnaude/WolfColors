@@ -21,5 +21,6 @@ commands:
       description: Set default wolf collar color.
       usage: |
         /<command> set [player] [color] - Set another player's default wolf collar color.
-        /<command> [color]  - Set a player's own default wolf collar color.
+        /<command> unset ([player]) - Unset collar default color for self or other player.
+        /<command> set [color]  - Set a player's own default wolf collar color.
         /<command> list ([player]) - List collar colors.
