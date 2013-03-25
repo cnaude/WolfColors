@@ -1,9 +1,25 @@
 name: WolfColors
-version: 1.0.1
-description: Change your wolf's collar color!
+version: 2.1.0
+description: Random collar color on tame!
 author: cnaude
 main: me.cnaude.plugin.WolfColors.WCMain
 permissions:
   wolfcolors.wolfcolors:
     description: Allow a player to dye a wolf's collar.
     default: false
+  wolfcolors.set.other:
+    description: Allow player to set other player's default wolf collar.
+    default: op
+  wolfcolors.list:
+    description: List all player collar colors.
+    default: op
+  wolfcolors.set.self:
+    description: Allow player to own default wolf collar.
+    default: false
+commands:
+    wc:
+      description: Set default wolf collar color.
+      usage: |
+        /<command> set [player] [color] - Set another player's default wolf collar color.
+        /<command> [color]  - Set a player's own default wolf collar color.
+        /<command> list ([player]) - List collar colors.

@@ -1,14 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package me.cnaude.plugin.WolfColors;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.craftbukkit.entity.CraftWolf;
-import org.bukkit.entity.AnimalTamer;
+import org.bukkit.DyeColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -16,8 +17,7 @@ import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -25,54 +25,54 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author cnaude
  */
 public class WCMain extends JavaPlugin implements Listener {
+
     public static final String PLUGIN_NAME = "WolfColors";
     public static final String LOG_HEADER = "[" + PLUGIN_NAME + "]";
-    static final Logger log = Logger.getLogger("Minecraft");     
-        
+    static final Logger log = Logger.getLogger("Minecraft");
     private File pluginFolder;
     private File configFile;
-    
+    private static Random randomGenerator;
+    public HashMap<String,String> plColors = new HashMap<String,String>();
+    private File plColorsFile;
+
     @Override
-    public void onEnable() {        
+    public void onEnable() {
         pluginFolder = getDataFolder();
         configFile = new File(pluginFolder, "config.yml");
+        plColorsFile = new File(pluginFolder,"colors.txt");
+        loadColorList();
         createConfig();
         this.getConfig().options().copyDefaults(true);
         saveConfig();
-        loadConfig();
-        getServer().getPluginManager().registerEvents(this, this);         
+        getServer().getPluginManager().registerEvents(this, this);
+        getCommand("wc").setExecutor(new WCCommands(this));
     }
-        
+    
+    @Override
+    public void onDisable() {
+        saveColorList();
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-        Entity e = event.getRightClicked();
-        Player p = event.getPlayer();
+    public void onEntityTameEvent(EntityTameEvent event) {
+        Entity e = event.getEntity();
+        Player p = (Player) event.getOwner();
+        String pName = p.getName();
         EntityType et = e.getType();
 
         if (et.equals(EntityType.WOLF)) {
             if (p.hasPermission("wolfcolors.wolfcolors")) {
-                ItemStack item = p.getInventory().getItemInHand();
-                // Check if wolf is tamed
-                if (((Wolf)e).isTamed()) {
-                    // Check if player owns this tamed wolf
-                    if (((Wolf)e).getOwner() == (AnimalTamer)p) {
-                        // Check if player holding dye item
-                        if (item.getTypeId() == 351) {
-                            // Do magic
-                            ((CraftWolf)e).getHandle().setCollarColor((byte) (15 - p.getInventory().getItemInHand().getDurability()));
-                            if (item.getAmount() == 1) {
-                                event.getPlayer().getInventory().remove(item);
-                            } else {
-                                item.setAmount(item.getAmount() - 1);
-                            }
-                        }
-                    }
+                if (plColors.containsKey(p.getName())) {
+                    ((Wolf) e).setCollarColor(DyeColor.valueOf(plColors.get(pName)));
+                } else {
+                    randomGenerator = new Random();
+                    int r = randomGenerator.nextInt(15);
+                    ((Wolf) e).setCollarColor(DyeColor.getByData((byte)r));
                 }
             }
         }
     }
-                
-    
+
     private void createConfig() {
         if (!pluginFolder.exists()) {
             try {
@@ -90,8 +90,41 @@ public class WCMain extends JavaPlugin implements Listener {
             }
         }
     }
-        
-    private void loadConfig() {
+
+    private void saveColorList() {
+        try {
+            PrintWriter out = new PrintWriter(plColorsFile);
+            for (String s : plColors.keySet()) {
+                out.println(s + ":" + plColors.get(s));                
+            }
+            out.close();            
+        } catch (Exception ex) {
+            logError(ex.getMessage());
+        }
+    }
+
+    private void loadColorList() {
+        BufferedReader reader = null;
+        if (plColorsFile.exists()) {
+            try {
+                reader = new BufferedReader(new FileReader(plColorsFile));
+                String text;
+                while ((text = reader.readLine()) != null) {                    
+                    String[] items = text.split(":", 2);
+                    plColors.put(items[0], items[1]);                    
+                }
+            } catch (IOException e) {
+                logError(e.getMessage());
+            } finally {
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    logError(e.getMessage());
+                }
+            }
+        }
     }
             
     public void logInfo(String _message) {
